@@ -1,0 +1,59 @@
+johannes@:projekt-2$ ./algo2
+Huffmani kodeerija
+Sisesta tekstilõik > 0df000aaaq
+Tekstilõik on: 0df000aaaq
+
+loo_huff: Taht 0: unikaalne kaal: 1
+loo_huff: Taht d: unikaalne kaal: 1
+loo_huff: Taht f: unikaalne kaal: 1
+loo_huff: Taht 0: olemas kaal: 2
+loo_huff: Taht 0: olemas kaal: 3
+loo_huff: Taht 0: olemas kaal: 4
+loo_huff: Taht a: unikaalne kaal: 1
+loo_huff: Taht a: olemas kaal: 2
+loo_huff: Taht a: olemas kaal: 3
+loo_huff: Taht q: unikaalne kaal: 1
+loe_puud: puude arv hetkel on 5
+find_min: leidsin minimaalse symboli 0xb5b858 d 1
+find_min: leidsin minimaalse symboli 0xb5b880 f 1
+loo_huff: loon uue symboli liitmiseks @ 5 weight 2 left 11909208 right 11909248
+loe_puud: puude arv hetkel on 4
+find_min: leidsin minimaalse symboli 0xb5b8d0 q 1
+find_min: leidsin minimaalse symboli 0xb5b8f8  2
+loo_huff: loon uue symboli liitmiseks @ 6 weight 3 left 11909328 right 11909368
+loe_puud: puude arv hetkel on 3
+find_min: leidsin minimaalse symboli 0xb5b8a8 a 3
+find_min: leidsin minimaalse symboli 0xb5b920  3
+loo_huff: loon uue symboli liitmiseks @ 7 weight 6 left 11909288 right 11909408
+loe_puud: puude arv hetkel on 2
+find_min: leidsin minimaalse symboli 0xb5b830 0 4
+find_min: leidsin minimaalse symboli 0xb5b948  6
+loo_huff: loon uue symboli liitmiseks @ 8 weight 10 left 11909168 right 11909448
+loe_puud: puude arv hetkel on 1
+valjastan puu:
+L4(
+   |0
+),
+R6(
+   |L3(
+   |   |a
+   |),
+   |R3(
+   |   |L1(
+   |   |   |q
+   |   |),
+   |   |R2(
+   |   |   |L1(
+   |   |   |   |d
+   |   |   |),
+   |   |   |R1(
+   |   |   |   |f)
+)
+)
+)
+
+leht: 0 kood 0
+leht: a kood 1010
+leht: q kood 110110110
+leht: d kood 1110111011101110
+leht: f kood 1111111111111111
