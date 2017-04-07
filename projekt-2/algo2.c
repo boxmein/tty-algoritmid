@@ -15,10 +15,43 @@ typedef struct node {
   char tipp;
 } node;
 
+
+static char koht_bitis = 0;
+void kirjuta_bitt(char *kodeeritud, int *bait, char bitt) {
+  printf("Kirjutan tekstis %s baiti %d biti %d\n", kodeeritud, *bait, bitt);
+  kodeeritud[*bait] = (kodeeritud[*bait] << 1) | bitt;
+  koht_bitis++;
+  if (koht_bitis == 8) {
+    *bait += 1;
+    koht_bitis = 0;
+  }
+}
+
 // Kodeeri tekstijada Huffman-koodiks
-void kodeeri(node *symbolid, int len, char *tekst) {
+void kodeeri(char **kooditabel, char *tekst, char *kodeeritud) {
   int tekst_len = strlen(tekst);
-  // TODO!
+  int *hetke_bait = 0;
+
+  for (int i = 0; i < tekst_len; i++) {
+    printf(" kodeeri: %c\n", tekst[i]);
+    char *kood = kooditabel[tekst[i]];
+
+    printf(" kodeeri: kodeerin tähe %c kui %s\n", tekst[i], kood);
+
+    for (int i = 0, l = strlen(kood); i < l; i++) {
+      if (kood[i] == '1') {
+        kirjuta_bitt(kodeeritud, hetke_bait, 1);
+      } else if (kood[i] == '0') {
+        kirjuta_bitt(kodeeritud, hetke_bait, 0);
+      }
+    }
+  }
+
+  printf("Kood tuli: ");
+  for (int i = 0, l = strlen(kodeeritud); i < l; i++) {
+    printf("%x", kodeeritud[i]);
+  }
+  printf("\n");
 }
 
 // Koosta Huffman-kooditabel
@@ -47,9 +80,6 @@ void koosta_kooditabel(node *tipp, char *kooditabel[MAX_PUU], char *praegune_koo
   }
 }
 
-void kirjuta_bitt(char bitt) {
-  putchar(bitt);
-}
 
 int loe_puud(node *symbolid, int len) {
   int loendur = 0;
@@ -86,7 +116,6 @@ void tabuleeri(int tabulaatoreid) {
     printf("   |");
   }
 }
-
 
 // Väljasta puu formaadis:
 // puu            ::= "L(", puu_voi_symbol, "),R(", puu_voi_symbol, ")"
@@ -188,47 +217,73 @@ void loo_huffman_puu(char *tekst, node *symbolid, int *viimane) {
 
 int main() {
   char tekst[MAX_TEKST];
+  char kodeeritud[MAX_TEKST];
+  char praegune_kood[MAX_PUU];
+  int puu_pikkus = 0;
+  char *kooditabel[255];
+  char vastus;
 
   printf("Huffmani kodeerija\n");
-  printf("Sisesta tekstilõik > ");
 
+  printf("Sisesta tekstilõik > ");
   fgets(tekst, MAX_TEKST, stdin);
 
   printf("Tekstilõik on: %s\n", tekst);
 
   // Kustuta teksti lõpust \n
   int sl = strlen(tekst);
-  tekst[sl - 1] = 0;
 
-  int puu_pikkus = 0;
+  if (sl == 0) {
+    printf("Sisesta teksti\n");
+    return 1;
+  }
+
+  tekst[sl - 1] = 0;
 
   node *symbolid = malloc(MAX_PUU * sizeof(node));
   node *puu_tipp = NULL;
 
+  printf("Loon Huffmani puu.\n");
   loo_huffman_puu(tekst, symbolid, &puu_pikkus);
 
   for (int i = 0; i < MAX_PUU; i++) {
     if (symbolid[i].tipp) {
       puu_tipp = symbolid + i;
-      printf("valjastan puu:\n");
-      valjasta_puu(symbolid + i, 0);
-      printf("\n");
       break;
     }
   }
-
-  char *kooditabel[255];
 
   for (int i = 0; i < 255; i++) {
     kooditabel[i] = malloc(MAX_PUU * sizeof(char));
   }
 
-  char praegune_kood[255];
-
+  printf("Väljastan ja loon kooditabeli.\n");
   koosta_kooditabel(puu_tipp, kooditabel, praegune_kood, 0);
 
-  // kodeeri sõnum ja väljasta baidid
-  // kodeeri(puu_tipp, tekst);
+  // Valikulised väljastamised
+
+  printf("Väljasta Huffmani puu? (y) ");
+
+  vastus = getchar();
+  getchar(); // söö \n ära
+
+  if (vastus == 'y') {
+    printf("Huffmani puu: \n");
+    valjasta_puu(puu_tipp, 0);
+  }
+
+
+  printf("Väljasta kodeeritud sõnum? (y) ");
+
+  vastus = getchar();
+  getchar(); // söö \n ära
+
+  if (vastus == 'y') {
+    printf("Kodeeritud sõnum: \n");
+    kodeeri(kooditabel, tekst, kodeeritud);
+    printf("\n");
+  }
+
 
   // vabaaaa
   for (int i = 0; i < 255; i++) {
