@@ -4,7 +4,7 @@
 #include <limits.h>
 
 #define MAX_TEKST 10000
-#define MAX_PUU   255
+#define MAX_PUU   511
 
 typedef struct node {
   char symbol;
@@ -39,11 +39,10 @@ void koosta_kooditabel(node *tipp, char *kooditabel[MAX_PUU], char *praegune_koo
   if (!tipp->left && !tipp->right) {
     // Salvesta kogutud kood kooditabelisse kohale <täht>
     memcpy(kooditabel[tipp->symbol], praegune_kood, idx);
+    kooditabel[tipp->symbol][idx] = 0;
     // Väljasta lehe <täht> kood
     printf("leht: %c kood ", tipp->symbol);
-    for (int i = 0; i < idx; i++) {
-      printf("%s", kooditabel[tipp->symbol]);
-    }
+    printf("%s", kooditabel[tipp->symbol]);
     printf("\n");
   }
 }
@@ -163,7 +162,7 @@ void loo_huffman_puu(char *tekst, node *symbolid, int *viimane) {
 
 
   // leiame minimaalsed "puud" ja liidame
-  while(loe_puud(symbolid, len) > 1){
+  while(loe_puud(symbolid, *viimane) > 1){
 
     node *first = find_min(symbolid, *viimane, NULL);
     node *second = find_min(symbolid, *viimane, first);
