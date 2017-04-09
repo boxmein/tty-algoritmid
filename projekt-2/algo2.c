@@ -1,3 +1,8 @@
+// Huffmani kodeerija
+// Kodeerib tekstisõne Huffman-koodi abil
+// Dekodeerimist ei jõudnud see kord
+// Johannes Kadak - kevad 2017
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,15 +24,21 @@
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0')
 
-
+// iga puu liige on struct node
 typedef struct node {
+  // puu lehel on sümbol, mida asendab
   char symbol;
+  // igal sümbolil on kaal, ja igal puu harul on kaal
   int weight;
+  // jätame meelde puu vasaku ja parema alamelemendi
   struct node* left;
   struct node* right;
+  // jätame meelde puu vanemelemendi
   struct node* parent;
+  // = 1 kui tegemist on mingi puu tipuga
   char tipp;
 } node;
+
 
 // Kirjuta baidijadasse bitt vastavale kohale
 void kirjuta_bitt_baiti(char *tekst, int bait, int bitikoht, char bitt) {
@@ -37,22 +48,25 @@ void kirjuta_bitt_baiti(char *tekst, int bait, int bitikoht, char bitt) {
 }
 
 // Kodeeri tekstijada Huffman-koodiks
-void kodeeri(char **kooditabel, char *tekst, char *kodeeritud) {
+void kodeeri(char **kooditabel, char *tekst, char *kodeeritud, int *kodeeritud_pikkus) {
   int tekst_len = strlen(tekst);
   int hetke_bait = 0;
   int hetke_bitt = 0;
 
+  // iga sümboli korral otsi kooditabelist selle kood
   for (int i = 0; i < tekst_len; i++) {
     char *kood = kooditabel[tekst[i]];
     printf(" kodeeri: kodeerin tähe %c kui %s\n", tekst[i], kood);
 
+    // iga biti korral koodis aseta see bitt kodeeritud bitijadasse
     for (int j = 0, kood_len = strlen(kood); j < kood_len; j++) {
       // väljundis kohal hetke_bait biti hetke_bitt seadmine
       char bitt = kood[j] == '1' ? 1 : 0;
 
       kirjuta_bitt_baiti(kodeeritud, hetke_bait, hetke_bitt, bitt);
+      // liigu järgmisele bitile
       hetke_bitt++;
-
+      // liigu järgmisele baidile
       if (hetke_bitt == 8) {
         hetke_bait++;
         hetke_bitt = 0;
@@ -60,13 +74,15 @@ void kodeeri(char **kooditabel, char *tekst, char *kodeeritud) {
 
     }
   }
+
+  // väljasta kodeeritud pikkus
+  *kodeeritud_pikkus = hetke_bait + 1;
 }
 
-void dekodeeri(char **kooditaber, char *tekst, char *dekodeeritud) {
-
-}
 
 // Koosta Huffman-kooditabel
+// kooditabel sisaldab igale sümbolile vastavat koodi
+// st, kooditabel['c'] = "0110"
 void koosta_kooditabel(node *tipp, char *kooditabel[MAX_PUU], char *praegune_kood, int idx) {
   // Rekurseeru vasakule
   if (tipp->left) {
@@ -92,7 +108,7 @@ void koosta_kooditabel(node *tipp, char *kooditabel[MAX_PUU], char *praegune_koo
   }
 }
 
-
+// loenda kõik puud mis hetkel olemas on (kõik puutipud)
 int loe_puud(node *symbolid, int len) {
   int loendur = 0;
   for (int i = 0; i < len; i++) {
@@ -103,7 +119,8 @@ int loe_puud(node *symbolid, int len) {
   return loendur;
 }
 
-// leia minimaalse kaaluga tippnode
+// leia minimaalse kaaluga tipp, kuid välja arvatud node *not_node
+// see on selleks, et asendada järjekorrasüsteemi
 node *find_min(node *symbolid, int len, node *not_node) {
 
   int min_weight = INT_MAX;
@@ -122,7 +139,7 @@ node *find_min(node *symbolid, int len, node *not_node) {
   return min_symbol;
 }
 
-// Tabuleeri N korda
+// lisa väljundisse n tabulatsiooni
 void tabuleeri(int tabulaatoreid) {
   for (int i = 0; i < tabulaatoreid; i++) {
     printf("   |");
@@ -134,7 +151,6 @@ void tabuleeri(int tabulaatoreid) {
 // puu_voi_symbol ::= puu | symbol
 // symbol         ::= ASCII sümbol
 // L<kaal>(vasak puu või sümbol), R<kaal>(parem puu või sümbol)
-
 void valjasta_puu(node *symbol, int tasand) {
   if (!symbol->left && !symbol->right) {
     tabuleeri(tasand);
@@ -165,6 +181,8 @@ void valjasta_puu(node *symbol, int tasand) {
 }
 
 // loo Huffman-kodeeringu puu
+// loo binaarpuu, kus mida tihedamini sümbol asub, seda kõrgemal puus sümboli
+// "leht" asub. igal lehel on kaal
 void loo_huffman_puu(char *tekst, node *symbolid, int *viimane) {
   int len = strlen(tekst);
   *viimane = 0;
@@ -227,24 +245,39 @@ void loo_huffman_puu(char *tekst, node *symbolid, int *viimane) {
 
 }
 
+// põhifunktsioon
 int main() {
+
+  // salvestab kasutaja sisendi
   char tekst[MAX_TEKST];
+
+  // salvestab kasutaja sisendi kodeeritud kujul
   char kodeeritud[MAX_TEKST];
+
+  // salvestab praeguese koodi kooditabeli generaatori jaoks (et mäluvõtt samas
+  // kohas asuks)
   char praegune_kood[MAX_PUU];
+
+  // salvestab uue puude nimekirja pikkuse pärast harude genereerimist
   int puu_pikkus = 0;
+
+  // salvestab kooditabeli (255 x 511 massiiv)
   char *kooditabel[255];
+
+  // salvestab kasutaja sisendi y/n küsimuste korral
   char vastus;
 
-  printf("Huffmani kodeerija\n");
+  printf("Huffmani kodeerija - Johannes Kadak 2017 kevad\n");
 
+  // küsi kasutaja teksti
   printf("Sisesta tekstilõik > ");
   fgets(tekst, MAX_TEKST, stdin);
 
   printf("Tekstilõik on: %s\n", tekst);
 
-  // Kustuta teksti lõpust \n
   int sl = strlen(tekst);
 
+  // Kustuta teksti lõpust \n
   if (sl == 0) {
     printf("Sisesta teksti\n");
     return 1;
@@ -252,13 +285,16 @@ int main() {
 
   tekst[sl - 1] = 0;
 
+  // võta sümbolilisti jaoks mälu
   node *symbolid = malloc(MAX_PUU * sizeof(node));
   node *puu_tipp = NULL;
 
   printf("Loon Huffmani puu.\n");
 
+  // genereeri sümbolilist ja puu
   loo_huffman_puu(tekst, symbolid, &puu_pikkus);
 
+  // leia lõpliku puu tipp
   for (int i = 0; i < MAX_PUU; i++) {
     if (symbolid[i].tipp) {
       puu_tipp = symbolid + i;
@@ -266,6 +302,7 @@ int main() {
     }
   }
 
+  // võta kooditabeli jaoks mälu
   for (int i = 0; i < 255; i++) {
     kooditabel[i] = malloc(MAX_PUU * sizeof(char));
   }
@@ -274,7 +311,8 @@ int main() {
   koosta_kooditabel(puu_tipp, kooditabel, praegune_kood, 0);
 
   printf("Kodeerin sõnumi.\n");
-  kodeeri(kooditabel, tekst, kodeeritud);
+  int kodeeritud_pikkus = 0;
+  kodeeri(kooditabel, tekst, kodeeritud, &kodeeritud_pikkus);
 
   // Valikulised väljastamised
 
@@ -296,13 +334,13 @@ int main() {
 
   if (vastus == 'y') {
     printf("Kodeeritud sõnum: \n");
-    for (int i = 0, l = hetke_bait; i <= l; i++) {
-      printf("%x ", kodeeritud[i] & 0xff);
+    for (int i = 0, l = kodeeritud_pikkus; i < l; i++) {
+      printf(BYTE_TO_BINARY_PATTERN " ", BYTE_TO_BINARY(kodeeritud[i] & 0xff));
     }
     printf("\n");
   }
 
-  // vabaaaa
+  // vabasta malloc()-iga võetud mälu
   for (int i = 0; i < 255; i++) {
     free(kooditabel[i]);
   }
