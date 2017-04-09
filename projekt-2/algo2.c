@@ -6,6 +6,20 @@
 #define MAX_TEKST 10000
 #define MAX_PUU   511
 
+// vastik binaarkoodi dekooder
+// https://stackoverflow.com/a/3208376
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
+
 typedef struct node {
   char symbol;
   int weight;
@@ -15,43 +29,41 @@ typedef struct node {
   char tipp;
 } node;
 
-
-static char koht_bitis = 0;
-void kirjuta_bitt(char *kodeeritud, int *bait, char bitt) {
-  printf("Kirjutan tekstis %s baiti %d biti %d\n", kodeeritud, *bait, bitt);
-  kodeeritud[*bait] = (kodeeritud[*bait] << 1) | bitt;
-  koht_bitis++;
-  if (koht_bitis == 8) {
-    *bait += 1;
-    koht_bitis = 0;
-  }
+// Kirjuta baidijadasse bitt vastavale kohale
+void kirjuta_bitt_baiti(char *tekst, int bait, int bitikoht, char bitt) {
+  printf("muudan baidi %d enne=%x bitt=%d to=%d ", bait, tekst[bait], bitikoht, bitt);
+  tekst[bait] = (tekst[bait] & (~(1 << bitikoht))) | (bitt << bitikoht);
+  printf("%x\n", tekst[bait] & 0xff);
 }
 
 // Kodeeri tekstijada Huffman-koodiks
 void kodeeri(char **kooditabel, char *tekst, char *kodeeritud) {
   int tekst_len = strlen(tekst);
-  int *hetke_bait = 0;
+  int hetke_bait = 0;
+  int hetke_bitt = 0;
 
   for (int i = 0; i < tekst_len; i++) {
-    printf(" kodeeri: %c\n", tekst[i]);
     char *kood = kooditabel[tekst[i]];
-
     printf(" kodeeri: kodeerin tähe %c kui %s\n", tekst[i], kood);
 
-    for (int i = 0, l = strlen(kood); i < l; i++) {
-      if (kood[i] == '1') {
-        kirjuta_bitt(kodeeritud, hetke_bait, 1);
-      } else if (kood[i] == '0') {
-        kirjuta_bitt(kodeeritud, hetke_bait, 0);
+    for (int j = 0, kood_len = strlen(kood); j < kood_len; j++) {
+      // väljundis kohal hetke_bait biti hetke_bitt seadmine
+      char bitt = kood[j] == '1' ? 1 : 0;
+
+      kirjuta_bitt_baiti(kodeeritud, hetke_bait, hetke_bitt, bitt);
+      hetke_bitt++;
+
+      if (hetke_bitt == 8) {
+        hetke_bait++;
+        hetke_bitt = 0;
       }
+
     }
   }
+}
 
-  printf("Kood tuli: ");
-  for (int i = 0, l = strlen(kodeeritud); i < l; i++) {
-    printf("%x", kodeeritud[i]);
-  }
-  printf("\n");
+void dekodeeri(char **kooditaber, char *tekst, char *dekodeeritud) {
+
 }
 
 // Koosta Huffman-kooditabel
@@ -244,6 +256,7 @@ int main() {
   node *puu_tipp = NULL;
 
   printf("Loon Huffmani puu.\n");
+
   loo_huffman_puu(tekst, symbolid, &puu_pikkus);
 
   for (int i = 0; i < MAX_PUU; i++) {
@@ -259,6 +272,9 @@ int main() {
 
   printf("Väljastan ja loon kooditabeli.\n");
   koosta_kooditabel(puu_tipp, kooditabel, praegune_kood, 0);
+
+  printf("Kodeerin sõnumi.\n");
+  kodeeri(kooditabel, tekst, kodeeritud);
 
   // Valikulised väljastamised
 
@@ -280,10 +296,11 @@ int main() {
 
   if (vastus == 'y') {
     printf("Kodeeritud sõnum: \n");
-    kodeeri(kooditabel, tekst, kodeeritud);
+    for (int i = 0, l = hetke_bait; i <= l; i++) {
+      printf("%x ", kodeeritud[i] & 0xff);
+    }
     printf("\n");
   }
-
 
   // vabaaaa
   for (int i = 0; i < 255; i++) {
