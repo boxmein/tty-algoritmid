@@ -42,9 +42,9 @@ typedef struct node {
 
 // Kirjuta baidijadasse bitt vastavale kohale
 void kirjuta_bitt_baiti(char *tekst, int bait, int bitikoht, char bitt) {
-  printf("muudan baidi %d enne=%x bitt=%d to=%d ", bait, tekst[bait], bitikoht, bitt);
+  // printf("muudan baidi %d enne=%x bitt=%d to=%d ", bait, tekst[bait], bitikoht, bitt);
   tekst[bait] = (tekst[bait] & (~(1 << bitikoht))) | (bitt << bitikoht);
-  printf("%x\n", tekst[bait] & 0xff);
+  // printf("%x\n", tekst[bait] & 0xff);
 }
 
 // Kodeeri tekstijada Huffman-koodiks
@@ -56,7 +56,7 @@ void kodeeri(char **kooditabel, char *tekst, char *kodeeritud, int *kodeeritud_p
   // iga sümboli korral otsi kooditabelist selle kood
   for (int i = 0; i < tekst_len; i++) {
     char *kood = kooditabel[tekst[i]];
-    printf(" kodeeri: kodeerin tähe %c kui %s\n", tekst[i], kood);
+    // printf(" kodeeri: kodeerin tähe %c kui %s\n", tekst[i], kood);
 
     // iga biti korral koodis aseta see bitt kodeeritud bitijadasse
     for (int j = 0, kood_len = strlen(kood); j < kood_len; j++) {
@@ -77,6 +77,37 @@ void kodeeri(char **kooditabel, char *tekst, char *kodeeritud, int *kodeeritud_p
 
   // väljasta kodeeritud pikkus
   *kodeeritud_pikkus = hetke_bait + 1;
+}
+
+// Dekodeeri Huffman-kodeeritud tekstijada, antud teksti pikkus.
+void dekodeeri(char *sisend, int sisend_pikkus, node *puu, int teksti_pikkus) {
+  node *praegune_samm = puu;
+  for (int j = 0; j < sisend_pikkus; j++) {
+    for (int i = 0; i < 8; i++) {
+      int bitt = (sisend[j] >> i) & 1;
+
+      if (bitt == 0) {
+        praegune_samm = praegune_samm->left;
+      }
+      else {
+        praegune_samm = praegune_samm->right;
+      }
+
+      if (praegune_samm->symbol) {
+        putchar(praegune_samm->symbol);
+
+        teksti_pikkus--;
+
+        if (teksti_pikkus == 0) {
+          break;
+        }
+
+        // kui tipp on leitud, läheme algusesse
+        praegune_samm = puu;
+      }
+    }
+  }
+  printf("\n");
 }
 
 
@@ -102,7 +133,7 @@ void koosta_kooditabel(node *tipp, char *kooditabel[MAX_PUU], char *praegune_koo
     memcpy(kooditabel[tipp->symbol], praegune_kood, idx);
     kooditabel[tipp->symbol][idx] = 0;
     // Väljasta lehe <täht> kood
-    printf("leht: %c kood ", tipp->symbol);
+    printf("symbol: %c kood ", tipp->symbol);
     printf("%s", kooditabel[tipp->symbol]);
     printf("\n");
   }
@@ -115,7 +146,7 @@ int loe_puud(node *symbolid, int len) {
     loendur += symbolid[i].tipp; // + 1 kui tipp, + 0 kui ei ole tipp
   }
 
-  printf("loe_puud: puude arv hetkel on %d\n", loendur);
+  // printf("loe_puud: puude arv hetkel on %d\n", loendur);
   return loendur;
 }
 
@@ -135,7 +166,7 @@ node *find_min(node *symbolid, int len, node *not_node) {
     }
   }
 
-  printf("find_min: leidsin minimaalse symboli %p %c %d\n", min_symbol, min_symbol->symbol, min_symbol->weight);
+  // printf("find_min: leidsin minimaalse symboli %p %c %d\n", min_symbol, min_symbol->symbol, min_symbol->weight);
   return min_symbol;
 }
 
@@ -237,8 +268,8 @@ void loo_huffman_puu(char *tekst, node *symbolid, int *viimane) {
     first->tipp = second->tipp = 0;
     symbolid[*viimane].tipp = 1;
 
-    printf("loo_huff: loon uue symboli liitmiseks @ %d weight %d left %d right %d\n",
-      *viimane, symbolid[*viimane].weight, symbolid[*viimane].left, symbolid[*viimane].right);
+    // printf("loo_huff: loon uue symboli liitmiseks @ %d weight %d left %d right %d\n",
+    //   *viimane, symbolid[*viimane].weight, symbolid[*viimane].left, symbolid[*viimane].right);
 
     *viimane += 1;
   }
@@ -338,6 +369,15 @@ int main() {
       printf(BYTE_TO_BINARY_PATTERN " ", BYTE_TO_BINARY(kodeeritud[i] & 0xff));
     }
     printf("\n");
+  }
+
+  printf("Dekodeeri? (y) ");
+  vastus = getchar();
+  getchar(); // söö \n ära
+
+  if (vastus == 'y') {
+    printf("Dekodeeritud sõnum: \n");
+    dekodeeri(kodeeritud, kodeeritud_pikkus, puu_tipp, strlen(tekst));
   }
 
   // vabasta malloc()-iga võetud mälu
